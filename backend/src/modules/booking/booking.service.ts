@@ -14,7 +14,7 @@ export class BookingService {
   constructor(
     @InjectRepository(Booking) private readonly bookingRepo: Repository<Booking>,
     @InjectRepository(Course) private readonly courseRepo: Repository<Course>,
-  ) {}
+  ) { }
 
   async create(dto: CreateBookingDto, user: JwtRequestUser) {
     const course = await this.courseRepo.findOne({ where: { id: dto.courseId }, relations: ['workshop'] });
@@ -32,7 +32,8 @@ export class BookingService {
       })
       .select('COALESCE(SUM(booking.peopleCount), 0)', 'total')
       .getRawOne<{ total: string }>();
-    if (Number(booked.total) + dto.peopleCount >= course.maxParticipants) {
+    const bookedCount = Number(booked?.total ?? 0);
+    if (bookedCount + dto.peopleCount > course.maxParticipants) {
       throw new BadRequestException('该时段余位不足');
     }
 
