@@ -22,13 +22,17 @@ export class BookingService {
       throw new NotFoundException('课程不存在');
     }
 
-    const booked = await this.bookingRepo.sum('peopleCount', {
-      courseId: dto.courseId,
-      bookingDate: dto.bookingDate,
-      timeSlot: dto.timeSlot,
-      status: BookingStatus.CONFIRMED,
-    });
-    if ((booked ?? 0) + dto.peopleCount > course.maxParticipants) {
+    const booked = await this.bookingRepo
+      .createQueryBuilder('booking')
+      .where('booking.courseId = :courseId', { courseId: dto.courseId })
+      .andWhere('booking.bookingDate = :bookingDate', { bookingDate: dto.bookingDate })
+      .andWhere('booking.timeSlot = :timeSlot', { timeSlot: dto.timeSlot })
+      .andWhere('booking.status IN (:...statuses)', {
+        statuses: [BookingStatus.PENDING, BookingStatus.CONFIRMED],
+      })
+      .select('COALESCE(SUM(booking.peopleCount), 0)', 'total')
+      .getRawOne<{ total: string }>();
+    if (Number(booked.total) + dto.peopleCount >= course.maxParticipants) {
       throw new BadRequestException('该时段余位不足');
     }
 

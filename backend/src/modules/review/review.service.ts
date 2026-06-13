@@ -88,7 +88,7 @@ export class ReviewService {
       .createQueryBuilder('review')
       .leftJoin('review.course', 'course')
       .where('course.workshopId = :workshopId', { workshopId })
-      .select('AVG(course.price)', 'avg')
+      .select('AVG(review.rating)', 'avg')
       .getRawOne<{ avg: string }>();
     const workshop = await this.workshopRepo.findOneBy({ id: workshopId });
     if (workshop) {

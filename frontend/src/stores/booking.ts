@@ -28,7 +28,7 @@ export const useBookingStore = defineStore('booking', {
     },
     async cancelBooking(id: number) {
       const booking = await updateBookingStatusApi(id, BookingStatus.CANCELLED);
-      this.list = this.list.map((item) => (item.courseId === id ? booking : item));
+      this.list = this.list.map((item) => (item.id === id ? booking : item));
     },
     async checkIn(id: number) {
       const booking = await checkInBookingApi(id);
